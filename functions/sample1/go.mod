@@ -1,3 +1,5 @@
-module github.com/aws/aws-lambda-go/lambda
+module sample1
 
-go 1.19
+go 1.18
+
+require github.com/aws/aws-lambda-go v1.41.0
