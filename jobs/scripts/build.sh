@@ -1,16 +1,10 @@
-#!/bin/sh
-test=`find functions -name main.go -type f`
+#!/bin/bash
+target_dirs=`find v1 -type d -path "*/functions/*" -not -name "build"`
 
-echo "Hello, World!"
-base_path=`pwd`
-for main_program_path in $test
+for dir in ${target_dirs}
 do
-  build_dir=`basename ${main_program_path%/*}`
-  echo $build_dir
-  echo "${base_path%/}/`dirname $main_program_path`"
-  cd "${base_path%/}/`dirname $main_program_path`"
-  go mod download
-  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
-  zip $build_dir.zip bootstrap
-  aws s3 cp $build_dir.zip s3://lambda-terasako
+    if [ ! -d "${dir}/build" ]; then
+        mkdir "${dir}/build"
+    fi
+    zip "${dir}/build/${dir##*/}.zip" -r $dir  
 done
