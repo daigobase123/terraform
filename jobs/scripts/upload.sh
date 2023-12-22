@@ -33,3 +33,17 @@ echo ${difference_array1[@]}
 difference_array2=(`difference "${intersection_array[*]}" "${yos_except[*]}"`)
 echo "difference (array2 - array1)"
 echo ${difference_array2[@]}
+
+difference_array3=(`difference "${array1[*]}" "${gf_except[*]}"`)
+echo "difference (array1 - array2)"
+# echo "v1/${difference_array3[@]}/functions/"
+for r in ${difference_array3[@]}:
+do
+    echo $(find v1 -type f -name ${r}.zip)
+    # aws s3 cp  $(find v1 -type f -name ${r}.zip) http://s3/lambda-terasako/v1
+done
+
+difference_array4=(`difference "${array2[*]}" "${yos_except[*]}"`)
+echo "difference (array2 - array1)"
+echo ${difference_array4[@]}
+echo "環境変数fg_exceptに"${difference_array4[@]}"を追加してください"
