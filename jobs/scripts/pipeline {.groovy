@@ -98,7 +98,8 @@ pipeline {
                             for r in ${difference_array3[@]}:
                             do
                                 echo $(find ${WORKSPACE}/aws-lambda/v1 -type f -name ${r}.zip)
-                                aws s3 cp  $(find ${WORKSPACE}/aws-lambda/v1 -type f -name ${r}.zip) s3://lambda-terasako/v1
+                                aws s3 cp  $(find ${WORKSPACE}/aws-lambda/v1 -type f -nam
+                                e ${r}.zip) s3://lambda-terasako/v1
                             done
                             difference_array4=(`difference "${v2_dirs[*]}" "${yos_except[*]}"`)
                             echo "difference (array2 - array1)"
