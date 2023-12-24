@@ -1,5 +1,12 @@
 #!/bin/bash
-# array=($(basename $(find src -type d -path "*/functions/*")))
+
+gf_except="sample1"
+yos_except="v2sample1"
+
+# 和集合
+union() {
+        printf '%s\n' $@ | sort | uniq
+}
 # find コマンドでディレクトリの一覧を取得して配列に格納
 intersection() {
     printf '%s\n' $@ | sort | uniq -d
@@ -10,40 +17,37 @@ difference() {
         (printf '%s\n' $@ | sort -u; printf '%s\n' ${2}) | sort | uniq -u
 }
 
-# find の結果を配列に格納
-array1=($(find v1 -type d -path "*/functions/*" -exec basename {} \;))
-array2=($(find src -type d -path "*/functions/*" -exec basename {} \;))
+# 環境変数を配列にパース
+gf_except=($(echo "$gf_except" | tr ',' '\n')) 
+yos_except=($(echo "$yos_except" | tr ',' '\n')) 
 
-gf_except=("delete","dynamo_aboition_pubresvitemgroup")
-yos_except=("sample1")
-# union_array=(`union "${array1[*]}" "${array2[*]}"`)
-# echo "union"
-# echo ${union_array[@]}
-echo ${array1[@]}
-echo ${array2[@]}
+# gf lambda function build target 
+gf_lambda_v1=($(find v1 -type d -path "*/functions/*" -printf "%f\n"))
+gf_lambda_v1_diff=(`difference "${gf_lambda_v1[*]}" "${gf_except[*]}"`)
 
-intersection_array=(`intersection "${array1[*]}" "${array2[*]}"`)
-echo "intersection"
-echo ${intersection_array[@]}
+gf_lambda_v2=($(find src -type d -path "*/functions/*" -printf "%f\n"))
+gf_lambda_v2_diff=(`difference "${gf_lambda_v2[*]}" "${gf_except[*]}"`)
 
-difference_array1=(`difference "${intersection_array[*]}" "${gf_except[*]}"`)
-echo "difference (array1 - array2)"
-echo ${difference_array1[@]}
+# 環境変数のexceptを除いたlmabda function
+gf_lambda_function=(`union "${gf_lambda_v1_diff[*]}" "${gf_lambda_v2_diff[*]}"`)
 
-difference_array2=(`difference "${intersection_array[*]}" "${yos_except[*]}"`)
-echo "difference (array2 - array1)"
-echo ${difference_array2[@]}
+# gf v1 v2の関数名の衝突
+gf_intersection_array=(`intersection "${gf_lambda_v1_diff[*]}" "${gf_lambda_v2_diff[*]}"`)
 
-difference_array3=(`difference "${array1[*]}" "${gf_except[*]}"`)
-echo "difference (array1 - array2)"
-# echo "v1/${difference_array3[@]}/functions/"
-for r in ${difference_array3[@]}:
-do
-    echo $(find v1 -type f -name ${r}.zip)
-    # aws s3 cp  $(find v1 -type f -name ${r}.zip) http://s3/lambda-terasako/v1
-done
 
-difference_array4=(`difference "${array2[*]}" "${yos_except[*]}"`)
-echo "difference (array2 - array1)"
-echo ${difference_array4[@]}
-echo "環境変数fg_exceptに"${difference_array4[@]}"を追加してください"
+# yos lambda function build target 
+yos_lambda=($(find v2 -type d -path "*/functions/*" -printf "%f\n"))
+yos_lambda_function=(`difference "${yos_lambda[*]}" "${yos_except[*]}"`)
+
+# gf yosの関数名の衝突
+gf_yos_intersection_array=(`intersection "${gf_lambda_function[*]}" "${yos_lambda_function[*]}"`)
+
+
+
+if [ ${#gf_intersection_array[*]} = 0 ] && [ ${#gf_intersection_array[*]} = 0 ]; then
+   echo "OK"
+   echo "gf | ${gf_lambda_function[@]}"
+   echo "yos| ${yos_lambda_function[@]}"
+else
+    exit 1
+fi
